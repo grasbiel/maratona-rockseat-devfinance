@@ -11,33 +11,26 @@ const Modal = {
     }
 }
 
-const transactions = [
-    {
-    description: 'Luz',
-    amount: -50000,
-    date: '23/01/2021'
-}, {
-    description: "Website",
-    amount: 500000,
-    date: '23/01/2021'
-    
-}, {
-    description: "Internet",
-    amount: -20000,
-    date: '23/01/2021'
-}, {
-    description: "APP",
-    amount: 200000,
-    date: '23/01/2021'
+const Storage = {
+    get() {
+        return JSON.parse(localStorage.getItem('dev.finances:transaction')) || 
+        []
+    },
+
+    set (transactions) {
+        localStorage.setItem("dev.finances:transaction", JSON.stringify(transactions))
+    }
 }
-]
+
 
 // Eu preciso somar as entradas
 // depois eu preciso somar as saídas e
 // remover das entradas o valor das saídas
 // assim, eu terei o total
 const Transaction = {
-    all:transactions,
+    all:Storage.get(),
+
+
     add(transaction) {
         Transaction.all.push(transaction);
 
@@ -93,12 +86,13 @@ const DOM = {
     transactionsContainer: document.querySelector('#data-table tbody'),
 
     addTransaction(transaction, index){
-        const tr = document.createElement('tr')
-        tr.innerHTML = DOM.innerHTMLTransaction(transaction)
+        const tr = document.createElement('tr');
+        tr.innerHTML = DOM.innerHTMLTransaction(transaction, index);
+        tr.dataset.index = index;
 
-        DOM.transactionsContainer.appendChild(tr)
+        DOM.transactionsContainer.appendChild(tr);
     },
-    innerHTMLTransaction(transaction) {
+    innerHTMLTransaction(transaction, index) {
         const CSSclass = transaction.amount > 0 ? "income" : "expense";
         
         const image = transaction.amount > 0 ? "./assets/plus.svg" : "./assets/minus.svg";
@@ -110,7 +104,7 @@ const DOM = {
             <td class="${CSSclass}"> ${amount} </td>
             <td class="date">${transaction.date} </td>
             <td>
-                <img src="${image}" alt="Remover transação">
+                <img onclick="Transaction.remove(${index})" src="${image}" alt="Remover transação">
             </td>
             `
 
@@ -132,9 +126,9 @@ const DOM = {
 
 const Utils = {
     formatAmount(value) {
-        value = Number(value)*100;
+        value = value*100;
 
-        return value;
+        return Math.round(value);
     },
 
     formatDate(date){
@@ -225,12 +219,13 @@ const Form = {
 
 const App = {
     init () {
-        Transaction.all.forEach(transaction => {
-            DOM.addTransaction(transaction);
+        Transaction.all.forEach(function (transaction, index) {
+            DOM.addTransaction(transaction, index);
         })
 
         DOM.updateBalance();
 
+        Storage.set(Transaction.all);
     },
 
     reload () {
@@ -241,4 +236,3 @@ const App = {
 
 App.init()
 
-Transaction.remove(0)
