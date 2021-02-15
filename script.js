@@ -126,11 +126,22 @@ const DOM = {
     },
 
     clearTransactions() {
-        DOM.transactionsContainer.innerHTML = ""
+        DOM.transactionsContainer.innerHTML = "";
     }
 }
 
 const Utils = {
+    formatAmount(value) {
+        value = Number(value)*100;
+
+        return value;
+    },
+
+    formatDate(date){
+        const splittedDate = date.split("-")
+        return `${splittedDate[2]}/${splittedDate[1]}/${splittedDate[0]}`
+    },
+
     formatCurrency (value) {
 
        const signal = Number(value) < 0 ? "-" : ""
@@ -153,7 +164,6 @@ const Form = {
     amount: document.querySelector('input#amount'),
     date: document.querySelector('input#date'),
 
-
     getValues() {
         return {
             description: Form.description.value,
@@ -162,8 +172,26 @@ const Form = {
         }
     },
     
-    formatData(){
+    formatValues() {
+        let {description, amount, date} = Form.getValues();
 
+        amount = Utils.formatAmount(amount);
+
+        date = Utils.formatDate(date);
+
+        console.log(date);
+
+        return {
+            description,
+            amount,
+            date
+        }
+    },
+
+    clearFields() {
+        Form.description.value = "";
+        Form.amount.value ="";
+        Form.date.value = "";
     },
 
     validateFields() {
@@ -175,23 +203,23 @@ const Form = {
                 throw new Error("Por favor, preencha todos os campos");
             }
     },
-    submit(event) {
-        
+
+    submit(event) {   
         event.preventDefault()
 
         try {
             // verificar se todas as informações estão preenchidas
-            Form.validateFields()
-
-            // formatar os dados para salvar
-            Form.formatData()
+            Form.validateFields();
+            const transaction = Form.formatValues()
             // salvar
+            Transaction.add(transaction);
             // apagar os dados do formulário
+            Form.clearFields();
             // modal feche
-            // atualizar a aplicação
+            Modal.close();
+        } catch(error) {
+            alert(error.message)
         }
-        
-        
     }
 }
 
